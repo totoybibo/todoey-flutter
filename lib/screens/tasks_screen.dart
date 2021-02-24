@@ -1,20 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:todoey/constants.dart';
-import 'package:todoey/widgets/task_item.dart';
 import 'package:todoey/screens/addtask_screen.dart';
-import 'package:todoey/models/task.dart';
 import 'package:todoey/widgets/tasks_list.dart';
+import 'package:provider/provider.dart';
+import 'package:todoey/models/tasks.dart';
 
-class TasksScreen extends StatefulWidget {
-  final List<Task> taskList = [];
-  @override
-  _TasksScreenState createState() => _TasksScreenState();
-}
-
-class _TasksScreenState extends State<TasksScreen> {
-  int activeCount = 0;
+class TasksScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
+    Tasks tasks = Provider.of<Tasks>(context);
     return Scaffold(
       backgroundColor: Colors.lightBlueAccent,
       floatingActionButton: FloatingActionButton(
@@ -25,16 +19,18 @@ class _TasksScreenState extends State<TasksScreen> {
         ),
         onPressed: () {
           showModalBottomSheet(
+            isScrollControlled: true,
             context: context,
-            builder: (context) => AddTask(addTaskCallback: (name) {
-              setState(() {
-                widget.taskList.add(Task(name));
-                widget.taskList.forEach((element) {
-                  if (element.isCompleted == true) activeCount++;
-                });
-              });
-              Navigator.pop(context);
-            }),
+            builder: (context) => SingleChildScrollView(
+              child: Container(
+                padding: EdgeInsets.only(
+                    bottom: MediaQuery.of(context).viewInsets.bottom + 10),
+                child: AddTask(addTask: (taskName) {
+                  tasks.addTask(taskName);
+                  Navigator.pop(context);
+                }),
+              ),
+            ),
           );
         },
       ),
@@ -67,8 +63,11 @@ class _TasksScreenState extends State<TasksScreen> {
                       fontSize: 50),
                 ),
                 Text(
-                  '$activeCount of ${widget.taskList.length} tasks completed.',
-                  style: TextStyle(color: Colors.white, fontSize: 18),
+                  '${tasks.activeCount} Task(s) Left',
+                  style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold),
                 ),
                 SizedBox(height: 10),
               ],
@@ -77,7 +76,7 @@ class _TasksScreenState extends State<TasksScreen> {
           Expanded(
             child: Container(
               decoration: kBoxDecoration,
-              child: TasksList(widget.taskList),
+              child: TasksList(),
             ),
           )
         ],
